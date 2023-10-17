@@ -1,26 +1,25 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
   const socket = io();
-
-  const usersList = document.getElementById('users');
-  const messageContainer = document.getElementById('messages');
-  const messageInput = document.getElementById('message-input');
-  const sendButton = document.getElementById('send-button');
-  const registerButton = document.getElementById('register-button');
-  const registerUserBtn = document.getElementById('registerUserBtn');
-  const registerModal = new bootstrap.Modal(document.getElementById('registerModal'));
+  const usersList = document.getElementById("users");
+  const messageContainer = document.getElementById("messages");
+  const messageInput = document.getElementById("message-input");
+  const sendButton = document.getElementById("send-button");
+  const registerButton = document.getElementById("register-button");
+  const registerModal = document.getElementById("register-modal");
+  const closeModalButton = document.getElementById("close-modal");
   let selectedUser = null;
 
   fetchAllUsers();
 
   function fetchAllUsers() {
-    fetch('http://localhost:8485/users')
+    fetch("http://localhost:8485/users")
       .then((response) => response.json())
       .then((data) => {
-        usersList.innerHTML = '';
+        usersList.innerHTML = "";
         data.forEach((user) => {
-          const userItem = document.createElement('li');
+          const userItem = document.createElement("li");
           userItem.innerText = `${user.first_name} ${user.last_name}`;
-          userItem.addEventListener('click', () => {
+          userItem.addEventListener("click", () => {
             selectedUser = user;
             openChatWithUser(selectedUser);
             fetchMessages(selectedUser.id);
@@ -28,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
           usersList.appendChild(userItem);
         });
       })
-      .catch((error) => console.error('Error fetching users:', error));
+      .catch((error) => console.error("Error fetching users:", error));
   }
 
   function openChatWithUser(user) {
@@ -39,32 +38,48 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(`http://localhost:8485/messages/${userId}`)
       .then((response) => response.json())
       .then((data) => {
-        messageContainer.innerHTML = '';
+        messageContainer.innerHTML = "";
         data.forEach((message) => {
-          const messageElement = document.createElement('div');
+          const messageElement = document.createElement("div");
           messageElement.innerText = `${message.user_first_name} ${message.user_last_name}: ${message.content}`;
           messageContainer.appendChild(messageElement);
         });
       })
-      .catch((error) => console.error('Error fetching messages:', error));
+      .catch((error) => console.error("Error fetching messages:", error));
   }
 
-  sendButton.addEventListener('click', () => {
+  sendButton.addEventListener("click", () => {
     const message = messageInput.value;
     if (message && selectedUser) {
       sendMessage(selectedUser.id, message);
-      messageInput.value = '';
+      messageInput.value = "";
     }
   });
 
   function sendMessage(userId, content) {
     fetch(`http://localhost:8485/messages/${userId}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         content: content,
       }),
     })
       .then((response) => response.json())
+      .then(() => {
+        fetchMessages(selectedUser.id);
+      })
+      .catch((error) => console.error("Error sending message:", error));
+  }
+
+  // Register button click event
+  registerButton.addEventListener("click", () => {
+    registerModal.classList.remove("hidden");
+  });
+
+  // Close modal button click event
+  closeModalButton.addEventListener("click", () => {
+    registerModal.classList.add("hidden");
+  });
+});
